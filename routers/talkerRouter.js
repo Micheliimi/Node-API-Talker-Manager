@@ -49,4 +49,21 @@ router.post('/', authMiddleware,
     return res.status(201).json(talker);
 });
 
+router.put('/:id', authMiddleware,
+  nameMiddleware, ageMiddleware, talkMiddleware,
+  watchedAtMiddleware, rateMiddleware, async (req, res) => {
+    const { name, age, talk: { watchedAt, rate } } = req.body;
+    const { id } = req.params;
+    const talkers = await getTalker();
+    // talkers.push({ id, name, age, talk: { watchedAt, rate } });
+    // await setTalker(talkers);
+    const talkerIndex = talkers.findIndex((r) => r.id === Number(id));
+    const idNumber = Number(id);
+    talkers[talkerIndex] = { id: idNumber, name, age, talk: { watchedAt, rate } };
+
+    await setTalker(talkers);
+
+    return res.status(200).json({ id: idNumber, name, age, talk: { watchedAt, rate } });
+  });
+
 module.exports = router;
