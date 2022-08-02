@@ -11,15 +11,6 @@ const talkMiddleware = require('../middlewares/talkMiddleware');
 const watchedAtMiddleware = require('../middlewares/watchedAtMiddleware');
 const rateMiddleware = require('../middlewares/rateMiddleware');
 
-router.get('/', async (req, res) => {
-  try {
-    const talkers = await getTalker();
-    return res.status(200).json(talkers);
-  } catch (err) {
-    return res.status(200).end([]);
-  }
-});
-
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -32,21 +23,6 @@ router.get('/:id', async (req, res) => {
   } catch (err) {
     return res.status(500).end();
   }
-});
-
-router.post('/', authMiddleware,
-  nameMiddleware, ageMiddleware, talkMiddleware,
-  watchedAtMiddleware, rateMiddleware, async (req, res) => {
-    const { name, age, talk: { watchedAt, rate } } = req.body;
-
-    const talkers = await getTalker();
-    const lastIndex = talkers.length - 1;
-    const lastTalker = talkers[lastIndex];
-    const lastId = lastTalker.id + 1;
-    const talker = { id: lastId, name, age, talk: { watchedAt, rate } };
-    talkers.push(talker);
-    await setTalker(talkers);
-    return res.status(201).json(talker);
 });
 
 router.put('/:id', authMiddleware,
@@ -65,5 +41,40 @@ router.put('/:id', authMiddleware,
 
     return res.status(200).json({ id: idNumber, name, age, talk: { watchedAt, rate } });
   });
+
+  router.delete('/:id', authMiddleware, async (req, res) => {
+    const { id } = req.params;
+    const talkers = await getTalker();
+    const talkerIndex = talkers.findIndex((r) => r.id === Number(id));
+
+    talkers.splice(talkerIndex, 1);
+    await setTalker(talkers);
+
+    return res.status(204).end();
+  });
+
+  router.get('/', async (req, res) => {
+    try {
+      const talkers = await getTalker();
+      return res.status(200).json(talkers);
+    } catch (err) {
+      return res.status(200).end([]);
+    }
+  });
+
+  router.post('/', authMiddleware,
+  nameMiddleware, ageMiddleware, talkMiddleware,
+  watchedAtMiddleware, rateMiddleware, async (req, res) => {
+    const { name, age, talk: { watchedAt, rate } } = req.body;
+
+    const talkers = await getTalker();
+    const lastIndex = talkers.length - 1;
+    const lastTalker = talkers[lastIndex];
+    const lastId = lastTalker.id + 1;
+    const talker = { id: lastId, name, age, talk: { watchedAt, rate } };
+    talkers.push(talker);
+    await setTalker(talkers);
+    return res.status(201).json(talker);
+});
 
 module.exports = router;
