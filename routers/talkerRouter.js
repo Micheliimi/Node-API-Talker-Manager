@@ -11,6 +11,22 @@ const talkMiddleware = require('../middlewares/talkMiddleware');
 const watchedAtMiddleware = require('../middlewares/watchedAtMiddleware');
 const rateMiddleware = require('../middlewares/rateMiddleware');
 
+router.get('/search', authMiddleware, async (req, res) => {
+  const { q } = req.query;
+  
+  // console.log(searchTerm);
+  const talkers = await getTalker();
+  if (!q || q.length === 0) {
+    return res.status(200).json(talkers);
+  }
+  const talker = talkers.filter((talk) => talk.name.includes(q));
+ 
+  if (!talker || talker.length === 0) {
+    return res.status(200).json([]);
+  }
+  return res.status(200).json(talker);
+});
+
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
